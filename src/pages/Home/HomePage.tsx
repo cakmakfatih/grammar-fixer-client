@@ -32,10 +32,11 @@ function ChatHistoryItem({
 }
 
 export function HomePage() {
+  const inputContainerRef = useRef<HTMLDivElement>(null);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeChatId, setActiveChatId] = useState<number>(0);
   const [chats, setChats] = useState<Chat[]>([]);
-  const inputContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setChats(browserDb.getChats());
