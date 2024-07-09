@@ -1,13 +1,22 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  EventHandler,
+  MouseEventHandler,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { browserDb } from "../../services/BrowserDatabase";
 import { Chat } from "../../core/types";
 
 function ChatHistoryItem({
   isActive = false,
   chat,
+  onClick,
 }: {
   isActive?: boolean;
   chat: Chat;
+  onClick: MouseEventHandler;
 }) {
   const date = useMemo(() => {
     return `${chat.date.getDate()}/${
@@ -17,9 +26,10 @@ function ChatHistoryItem({
 
   return (
     <div
+      onClick={onClick}
       className={
         isActive
-          ? "text-white justify-between py-1 font-semibold mx-2 flex items-center border-l-2 border-green-500 select-none"
+          ? "text-white justify-between py-1 font-semibold mx-2 flex items-center border-l-2 border-green-500 select-none mt-2"
           : "text-white justify-between py-1 font-semibold mx-2 flex items-center border-l-2 border-transparent cursor-pointer hover:border-green-500 opacity-35 hover:opacity-75 mt-2 select-none transition-opacity duration-75"
       }
     >
@@ -35,14 +45,16 @@ export function HomePage() {
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const inputChatTitle = useRef<HTMLInputElement>(null);
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeChatId, setActiveChatId] = useState<number>(0);
   const [chats, setChats] = useState<Chat[]>([]);
   const [isOpeningNewChat, setIsOpeningNewChat] = useState<boolean>(false);
 
   useEffect(() => {
-    setChats(browserDb.getChats());
-    setIsLoading(false);
+    const existingChats = browserDb.getChats();
+    setChats(existingChats);
+
+    if (existingChats.length > 0) setActiveChatId(existingChats[0].id);
+    else setActiveChatId(0);
   }, []);
 
   return (
@@ -82,8 +94,7 @@ export function HomePage() {
               const inputValue = inputChatTitle.current?.value;
 
               const chatTitle = inputValue ? inputValue : `Chat ${newChatId}`;
-
-              setChats([
+              const newChats = [
                 {
                   id: newChatId,
                   title: chatTitle,
@@ -91,8 +102,12 @@ export function HomePage() {
                   messages: [],
                 },
                 ...chats,
-              ]);
+              ];
+
+              setChats(newChats);
               setIsOpeningNewChat(false);
+
+              browserDb.saveChats(newChats);
             }}
             className="bg-neutral-900 border-green-500 border-2 flex text-white font-semibold rounded-xl py-2 px-2"
           >
@@ -124,12 +139,38 @@ export function HomePage() {
         <div className="mt-4 flex flex-col">
           {chats.map((chat) => (
             <ChatHistoryItem
+              onClick={() => setActiveChatId(chat.id)}
               key={chat.id}
               chat={chat}
               isActive={activeChatId === chat.id}
             />
           ))}
         </div>
+        <div className="flex-1"></div>
+        <button
+          onClick={(_) => {
+            browserDb.clearHistory();
+            setChats([]);
+            setActiveChatId(0);
+          }}
+          className="items-center hover:border-green-500 active:border-green-300 transition-colors duration-200 font-semibold rounded-xl text-white p-2 flex bg-red-900 border-2 border-neutral-900 justify-between"
+        >
+          <span className="ml-2">Clear History</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+            />
+          </svg>
+        </button>
       </aside>
       <div className="flex-[5] flex flex-col items-stretch bg-neutral-900 text-white">
         <div className="flex-1 flex flex-col p-8">
