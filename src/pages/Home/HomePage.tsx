@@ -33,10 +33,12 @@ function ChatHistoryItem({
 
 export function HomePage() {
   const inputContainerRef = useRef<HTMLDivElement>(null);
+  const inputChatTitle = useRef<HTMLInputElement>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeChatId, setActiveChatId] = useState<number>(0);
   const [chats, setChats] = useState<Chat[]>([]);
+  const [isOpeningNewChat, setIsOpeningNewChat] = useState<boolean>(false);
 
   useEffect(() => {
     setChats(browserDb.getChats());
@@ -46,23 +48,79 @@ export function HomePage() {
   return (
     <>
       <aside className="flex-1 min-w-[450px] bg-neutral-950 flex flex-col p-4">
-        <button className="items-center hover:border-green-500 active:border-green-300 transition-colors duration-200 font-semibold rounded-xl text-white p-2 flex bg-neutral-900 border-2 border-neutral-900 justify-between">
-          <span className="ml-2">New Chat</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-6"
+        {!isOpeningNewChat ? (
+          <button
+            onClick={(_) => {
+              setIsOpeningNewChat(true);
+            }}
+            className="items-center hover:border-green-500 active:border-green-300 transition-colors duration-200 font-semibold rounded-xl text-white p-2 flex bg-neutral-900 border-2 border-neutral-900 justify-between"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
+            <span className="ml-2">New Chat</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+          </button>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+
+              const newChatId = chats.length;
+              setActiveChatId(newChatId);
+
+              const inputValue = inputChatTitle.current?.value;
+
+              const chatTitle = inputValue ? inputValue : `Chat ${newChatId}`;
+
+              setChats([
+                {
+                  id: newChatId,
+                  title: chatTitle,
+                  date: new Date(),
+                  messages: [],
+                },
+                ...chats,
+              ]);
+              setIsOpeningNewChat(false);
+            }}
+            className="bg-neutral-900 border-green-500 border-2 flex text-white font-semibold rounded-xl py-2 px-2"
+          >
+            <input
+              onBlur={(_) => setIsOpeningNewChat(false)}
+              className="px-2 flex-1 bg-transparent border-none outline-none"
+              placeholder="Chat Title"
+              autoFocus={true}
+              ref={inputChatTitle}
             />
-          </svg>
-        </button>
+            <button className="hover:opacity-65 transition-opacity duration-75">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                />
+              </svg>
+            </button>
+          </form>
+        )}
         <div className="mt-4 flex flex-col">
           {chats.map((chat) => (
             <ChatHistoryItem
