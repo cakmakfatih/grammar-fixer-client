@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ChatMessage, Sender } from "../../core/types";
+import { Store } from "react-notifications-component";
 
 function ChatMessageUserAvatar() {
   return (
@@ -91,7 +92,25 @@ export function ChatMessageComponent({ message }: { message: ChatMessage }) {
           )}
         </span>
         {message.from === Sender.AI && (
-          <button className="mt-2 p-1 bg-neutral-950 self-start rounded-md hover:ring-2 ring-green-500 active:ring-green-300">
+          <button
+            className="mt-2 p-1 bg-neutral-950 self-start rounded-md hover:ring-2 ring-green-500 active:ring-green-300"
+            onClick={(_) => {
+              navigator.clipboard.writeText(message.content);
+              Store.addNotification({
+                title: "Successful!",
+                message: "Text has been successfully copied to the clipboard.",
+                type: "success",
+                insert: "top",
+                container: "top-right",
+                animationIn: ["animate__animated", "animate__fadeIn"],
+                animationOut: ["animate__animated", "animate__fadeOut"],
+                dismiss: {
+                  duration: 1250,
+                  onScreen: true,
+                },
+              });
+            }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

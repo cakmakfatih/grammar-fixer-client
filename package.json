@@ -15,7 +15,8 @@
     "axios": "^1.7.2",
     "framer-motion": "^12.0.0-alpha.0",
     "react": "19.0.0-rc-378b305958-20240710",
-    "react-dom": "19.0.0-rc-378b305958-20240710"
+    "react-dom": "19.0.0-rc-378b305958-20240710",
+    "react-notifications-component": "^4.0.1"
   },
   "overrides": {
     "@types/react": "npm:types-react@rc",
