@@ -75,6 +75,7 @@ export function ChatMessageComponent({ message }: { message: ChatMessage }) {
               animate={{
                 backgroundColor: ["#01579b", "#0288d1"],
                 rotate: [0, 0, 180, 180, 0],
+                scale: [0.7, 0.7, 1, 1, 0.7],
                 borderRadius: ["0%", "0%", "50%", "50%", "0%"],
               }}
               transition={{

@@ -18,6 +18,31 @@ export function HomePage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [_, startTransition] = useTransition();
 
+  const submitNewChat = (e: FormEvent) => {
+    e.preventDefault();
+
+    const newChatId = chats.length;
+    setActiveChatId(newChatId);
+
+    const inputValue = inputChatTitleRef.current?.value;
+
+    const chatTitle = inputValue ? inputValue : `Chat ${newChatId}`;
+    const newChat = {
+      id: newChatId,
+      title: chatTitle,
+      date: new Date(),
+      messages: [],
+    };
+
+    const newChats = [newChat, ...chats];
+
+    setChats(newChats);
+    setIsOpeningNewChat(false);
+    setChatMessages(newChat.messages);
+
+    browserDb.saveChats(newChats);
+  };
+
   const submitMessage = (e: FormEvent) => {
     e.preventDefault();
 
@@ -53,12 +78,13 @@ export function HomePage() {
         date: new Date(),
         messages: [],
       };
-      const newChats = [newChat];
 
-      setChats(newChats);
+      chats.push(newChat);
+
+      setChats([...chats]);
       setActiveChatId(0);
 
-      browserDb.saveChats(newChats);
+      browserDb.saveChats(chats);
     }
 
     startTransition(async () => {
@@ -68,13 +94,16 @@ export function HomePage() {
         newMessages[newMessages.length - 1].content =
           result.choices[0].message.content;
         setChatMessages([...newMessages]);
+
+        let currentActiveChatId = activeChatId ?? 0;
+
         const activeChatIdx = chats.findIndex(
-          (chat) => chat.id === activeChatId
+          (chat) => chat.id === currentActiveChatId
         );
 
         if (activeChatIdx !== -1) {
           const newChats = [...chats];
-          newChats[activeChatIdx].messages = newMessages;
+          newChats[activeChatIdx].messages = [...newMessages];
 
           setChats(newChats);
           browserDb.saveChats(newChats);
@@ -128,40 +157,22 @@ export function HomePage() {
           </button>
         ) : (
           <form
-            onSubmit={(e) => {
-              e.preventDefault();
-
-              const newChatId = chats.length;
-              setActiveChatId(newChatId);
-
-              const inputValue = inputChatTitleRef.current?.value;
-
-              const chatTitle = inputValue ? inputValue : `Chat ${newChatId}`;
-              const newChat = {
-                id: newChatId,
-                title: chatTitle,
-                date: new Date(),
-                messages: [],
-              };
-
-              const newChats = [newChat, ...chats];
-
-              setChats(newChats);
-              setIsOpeningNewChat(false);
-              setChatMessages(newChat.messages);
-
-              browserDb.saveChats(newChats);
-            }}
+            onSubmit={submitNewChat}
             className="bg-neutral-900 border-green-500 border-2 flex text-white font-semibold rounded-xl py-2 px-2"
           >
             <input
-              onBlur={(_) => setIsOpeningNewChat(false)}
               className="px-2 flex-1 bg-transparent border-none outline-none"
               placeholder="Chat Title"
               autoFocus={true}
               ref={inputChatTitleRef}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setIsOpeningNewChat(false);
+              }}
             />
-            <button className="hover:opacity-65 transition-opacity duration-75">
+            <button
+              className="hover:opacity-65 transition-opacity duration-75"
+              type="submit"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
