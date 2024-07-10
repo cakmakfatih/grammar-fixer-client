@@ -7,10 +7,10 @@ export interface Chat {
   id: number;
   date: Date;
   title: string;
-  messages: Message[];
+  messages: ChatMessage[];
 }
 
-export interface Message {
+export interface ChatMessage {
   from: Sender;
   content: string;
   date: Date;
