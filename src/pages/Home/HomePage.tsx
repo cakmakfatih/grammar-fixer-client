@@ -68,6 +68,17 @@ export function HomePage() {
         newMessages[newMessages.length - 1].content =
           result.choices[0].message.content;
         setChatMessages([...newMessages]);
+        const activeChatIdx = chats.findIndex(
+          (chat) => chat.id === activeChatId
+        );
+
+        if (activeChatIdx !== -1) {
+          const newChats = [...chats];
+          newChats[activeChatIdx].messages = newMessages;
+
+          setChats(newChats);
+          browserDb.saveChats(newChats);
+        }
       }
     });
   };
@@ -187,6 +198,7 @@ export function HomePage() {
             browserDb.clearHistory();
             setChats([]);
             setActiveChatId(0);
+            setChatMessages([]);
           }}
           className="items-center hover:border-green-500 active:border-green-300 transition-colors duration-200 font-semibold rounded-xl text-white p-2 flex bg-red-900 border-2 border-neutral-900 justify-between"
         >
