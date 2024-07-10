@@ -68,7 +68,7 @@ export function ChatMessageComponent({ message }: { message: ChatMessage }) {
         <h2 className="font-semibold text-md">
           {message.from === Sender.AI ? "G-AI" : "You"}
         </h2>
-        <span className="">{message.content}</span>
+        <span className="max-w-[700px]">{message.content}</span>
         {message.from === Sender.AI && (
           <button className="mt-2 p-1 bg-neutral-950 self-start rounded-md hover:ring-2 ring-green-500 active:ring-green-300">
             <svg

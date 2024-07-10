@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { browserDb } from "../../services/BrowserDatabase";
 import { Chat, ChatMessage, Sender } from "../../core/types";
 import ChatHistoryItemComponent from "../../components/ChatHistoryItem";
 import ChatMessageComponent from "../../components/ChatMessage";
+import { apiService } from "../../services/ApiService";
 
 export function HomePage() {
   const inputContainerRef = useRef<HTMLDivElement>(null);
@@ -15,6 +16,45 @@ export function HomePage() {
   const [message, setMessage] = useState<string>("");
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isPending, startTransition] = useTransition();
+
+  const submitMessage = (e: SubmitEvent) => {
+    e.preventDefault();
+
+    const sentMessage = message;
+
+    if (!(message.length > 0 && message.length < 255)) {
+      return;
+    }
+
+    const newMessages = [
+      ...chatMessages,
+      {
+        from: Sender.Human,
+        content: sentMessage,
+        date: new Date(),
+      },
+    ];
+
+    setChatMessages(newMessages);
+
+    setMessage("");
+
+    startTransition(async () => {
+      const result = await apiService.checkGrammar(sentMessage);
+
+      if (result !== null && result.choices.length > 0) {
+        setChatMessages([
+          ...newMessages,
+          {
+            from: Sender.AI,
+            content: result.choices[0].message.content,
+            date: new Date(),
+          },
+        ]);
+      }
+    });
+  };
 
   useEffect(() => {
     messagesContainerRef.current!.scrollTo({
@@ -70,18 +110,18 @@ export function HomePage() {
               const inputValue = inputChatTitleRef.current?.value;
 
               const chatTitle = inputValue ? inputValue : `Chat ${newChatId}`;
-              const newChats = [
-                {
-                  id: newChatId,
-                  title: chatTitle,
-                  date: new Date(),
-                  messages: [],
-                },
-                ...chats,
-              ];
+              const newChat = {
+                id: newChatId,
+                title: chatTitle,
+                date: new Date(),
+                messages: [],
+              };
+
+              const newChats = [newChat, ...chats];
 
               setChats(newChats);
               setIsOpeningNewChat(false);
+              setChatMessages(newChat.messages);
 
               browserDb.saveChats(newChats);
             }}
@@ -162,26 +202,7 @@ export function HomePage() {
         </div>
         <form
           className="flex items-stretch py-2 px-2 select-none"
-          onSubmit={(e) => {
-            e.preventDefault();
-
-            const sentMessage = message;
-
-            if (!(message.length > 0 && message.length < 255)) {
-              return;
-            }
-
-            setChatMessages([
-              ...chatMessages,
-              {
-                from: Sender.Human,
-                content: sentMessage,
-                date: new Date(),
-              },
-            ]);
-
-            setMessage("");
-          }}
+          onSubmit={submitMessage}
         >
           <div
             className="flex-1 m-2 text-xl text-white ring-green-400 rounded-full bg-neutral-800 border border-neutral-950 flex transition-colors duration-200"

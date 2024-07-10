@@ -10,13 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc",
+    "axios": "^1.7.2",
     "framer-motion": "^12.0.0-alpha.0",
-    "react": "^19.0.0-beta-26f2496093-20240514",
-    "react-dom": "^19.0.0-beta-26f2496093-20240514"
+    "react": "19.0.0-rc-378b305958-20240710",
+    "react-dom": "19.0.0-rc-378b305958-20240710"
+  },
+  "overrides": {
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc"
   },
   "devDependencies": {
-    "@types/react": "npm:types-react@alpha",
-    "@types/react-dom": "npm:types-react-dom@alpha",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
     "@typescript-eslint/parser": "^7.13.1",
     "@vitejs/plugin-react": "^4.3.1",
