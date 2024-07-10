@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useTransition } from "react";
+import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 import { browserDb } from "../../services/BrowserDatabase";
 import { Chat, ChatMessage, Sender } from "../../core/types";
 import ChatHistoryItemComponent from "../../components/ChatHistoryItem";
@@ -16,9 +16,9 @@ export function HomePage() {
   const [message, setMessage] = useState<string>("");
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [isPending, startTransition] = useTransition();
+  const [_, startTransition] = useTransition();
 
-  const submitMessage = (e: SubmitEvent) => {
+  const submitMessage = (e: FormEvent) => {
     e.preventDefault();
 
     const sentMessage = message;
@@ -27,6 +27,12 @@ export function HomePage() {
       return;
     }
 
+    const aiResponse = {
+      from: Sender.AI,
+      content: "pending",
+      date: new Date(),
+    };
+
     const newMessages = [
       ...chatMessages,
       {
@@ -34,24 +40,34 @@ export function HomePage() {
         content: sentMessage,
         date: new Date(),
       },
+      aiResponse,
     ];
 
     setChatMessages(newMessages);
-
     setMessage("");
+
+    if (chats.length === 0) {
+      const newChat = {
+        id: 0,
+        title: `${sentMessage.substring(0, 50)}`,
+        date: new Date(),
+        messages: [],
+      };
+      const newChats = [newChat];
+
+      setChats(newChats);
+      setActiveChatId(0);
+
+      browserDb.saveChats(newChats);
+    }
 
     startTransition(async () => {
       const result = await apiService.checkGrammar(sentMessage);
 
       if (result !== null && result.choices.length > 0) {
-        setChatMessages([
-          ...newMessages,
-          {
-            from: Sender.AI,
-            content: result.choices[0].message.content,
-            date: new Date(),
-          },
-        ]);
+        newMessages[newMessages.length - 1].content =
+          result.choices[0].message.content;
+        setChatMessages([...newMessages]);
       }
     });
   };

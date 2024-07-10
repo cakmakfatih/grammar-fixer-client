@@ -68,7 +68,27 @@ export function ChatMessageComponent({ message }: { message: ChatMessage }) {
         <h2 className="font-semibold text-md">
           {message.from === Sender.AI ? "G-AI" : "You"}
         </h2>
-        <span className="max-w-[700px]">{message.content}</span>
+        <span className="max-w-[700px] mt-1">
+          {message.content === "pending" && message.from === Sender.AI ? (
+            <motion.div
+              className="size-6 bg-blue-700"
+              animate={{
+                backgroundColor: ["#01579b", "#0288d1"],
+                rotate: [0, 0, 180, 180, 0],
+                borderRadius: ["0%", "0%", "50%", "50%", "0%"],
+              }}
+              transition={{
+                duration: 0.5,
+                ease: "easeInOut",
+                times: [0, 0.2, 0.5, 0.8, 1],
+                repeat: Infinity,
+                repeatDelay: 0.15,
+              }}
+            />
+          ) : (
+            message.content
+          )}
+        </span>
         {message.from === Sender.AI && (
           <button className="mt-2 p-1 bg-neutral-950 self-start rounded-md hover:ring-2 ring-green-500 active:ring-green-300">
             <svg
